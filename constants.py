@@ -5,7 +5,7 @@ local_dir = '/Users/vishwanathprudhivi/Desktop/Code/jobathon_nov21'
 
 if mode == 'docker container':
     RAW_TRAIN_PATH = f'{docker_dir}/data/train_MpHjUjU.csv'
-    RAW_TEST_PATH = f'{docker_dir}/data/test_hXY9mYm.csv'
+    RAW_TEST_PATH = f'{docker_dir}/data/test_hXY9mYw.csv'
     TRAIN_REPORT_PATH = f'{docker_dir}/reports/train_report.html'
     TEST_REPORT_PATH = f'{docker_dir}/reports/test_report.html'
     PROCESSED_TRAIN_PATH = f'{docker_dir}/data/processed_train.csv'
@@ -15,7 +15,7 @@ if mode == 'docker container':
 
 elif mode == 'local':
     RAW_TRAIN_PATH = f'{local_dir}/data/train_MpHjUjU.csv'
-    RAW_TEST_PATH = f'{local_dir}/data/test_hXY9mYm.csv'
+    RAW_TEST_PATH = f'{local_dir}/data/test_hXY9mYw.csv'
     TRAIN_REPORT_PATH = f'{local_dir}/reports/train_report.html'
     TEST_REPORT_PATH = f'{local_dir}/reports/test_report.html'
     PROCESSED_TRAIN_PATH = f'{local_dir}/data/processed_train.csv'
@@ -26,7 +26,7 @@ elif mode == 'local':
 PRIMARY_KEYS = ['emp_id','mmm-yy','lastworkingdate','dateofjoining']
 
 CATEGORICAL_FEATURES = ['designation','gender','city','education_level']
-NUMERICAL_FEATURES = ['salary','age','total_business_value','quarterly_rating']
+NUMERICAL_FEATURES = ['salary','age','total_business_value','quarterly_rating','tenure']
 DATETIME_FEATURES = ['lastworkingdate','dateofjoining','mmm-yy']
 
 TARGET = 'target'

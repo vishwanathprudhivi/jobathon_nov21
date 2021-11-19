@@ -28,26 +28,34 @@ def prepare_data(data_type = 'train',
     print('data columns ',df.columns)
 
     if data_type == 'train':
-        #get dummies for categorical features
-        ohe_encoder = OneHotEncoder(handle_unknown='ignore',sparse = False, drop = 'first').fit(df[categorical_features])
-        categorical_features_df = pd.DataFrame(ohe_encoder.transform(df[categorical_features]),columns = ohe_encoder.get_feature_names_out(categorical_features))
-        print('categorical_features_df data shape {}'.format(categorical_features_df.shape))
+        #parse date time columns
+        for col in DATETIME_FEATURES:
+            df[col] = pd.to_datetime(df[col])
+        
+        #create the target variables
+        #df['lastworkingdate'].bfill(axis ='rows',inplace = True)
+        df['lastworkingdate'] = df.groupby(['emp_id'])['lastworkingdate'].bfill()
+        df[target_col] = 0
+        df[target_col][((df['lastworkingdate'] - df['mmm-yy']).dt.days<=6*30) & ((df['lastworkingdate'] - df['mmm-yy']).dt.days>0)] = 1
+
+        #get last 8 ratings and business value per employee
+        for i in range(1,9,1):
+            df[f'rating_minus_{i}'] = df.groupby(['emp_id'])['quarterly_rating'].shift(i)
+            df[f'business_minus_{i}'] = df.groupby(['emp_id'])['total_business_value'].shift(i)
+
+        #create tenure column
+        df['tenure'] = (df['mmm-yy'] - df['dateofjoining']).dt.days
 
         #get scaled values of numeric features
         standard_scaler = StandardScaler().fit(df[numerical_features])
         numerical_features_df = pd.DataFrame(standard_scaler.transform(df[numerical_features]),columns = numerical_features)
         print('numerical_features_df data shape {}'.format(numerical_features_df.shape))
 
-        #parse date time columns
-        for col in DATETIME_FEATURES:
-            df[col] = pd.to_datetime(df[col])
+        #get dummies for categorical features
+        ohe_encoder = OneHotEncoder(handle_unknown='ignore',sparse = False, drop = 'first').fit(df[categorical_features])
+        categorical_features_df = pd.DataFrame(ohe_encoder.transform(df[categorical_features]),columns = ohe_encoder.get_feature_names_out(categorical_features))
+        print('categorical_features_df data shape {}'.format(categorical_features_df.shape))
         
-        #create the target variable
-        #df['lastworkingdate'].bfill(axis ='rows',inplace = True)
-        df['lastworkingdate'] = df.groupby(['emp_id'])['lastworkingdate'].bfill()
-        df[target_col] = 0
-        df[target_col][((df['lastworkingdate'] - df['mmm-yy']).dt.days<=6*30) & ((df['lastworkingdate'] - df['mmm-yy']).dt.days>0)] = 1
-
         #save our data transformers
         joblib.dump(ohe_encoder,artifacts_path+'ohe_obj.pkl')
         joblib.dump(standard_scaler,artifacts_path+'standard_scaler.pkl')
@@ -57,7 +65,7 @@ def prepare_data(data_type = 'train',
         print('not needed as there is no separate test dataset')
     
     #combine all individual datasets together
-    out_df = pd.concat([numerical_features_df,categorical_features_df,df[[target_col]+PRIMARY_KEYS]],axis = 1)
+    out_df = pd.concat([numerical_features_df,categorical_features_df,df[[target_col]+PRIMARY_KEYS+[f'rating_minus_{i}' for i in range(1,9,1)] + [f'business_minus_{i}' for i in range(1,9,1)]]],axis = 1).fillna(0)
 
     print('out_df data shape {}'.format(out_df.shape))
 

@@ -12,11 +12,13 @@ raw data exploration observations:
 1. raw data has no missing values, except for the last working day column
 2. high correlation observed (as is expected) between age, salary, and designation
 3. high correlation observed (as is expected) between total business value, quarterly rating, and our target column
+4. correlation observed between salary and education level
+5. city variables dont reveal much insight
 
-Given our own experiences with appraisal cycles in general, there seems to be a lot of scope to enhance the model performance by creating custom features. Here are a few feature engineering ideas and notes:
+Given our own experiences with appraisal cycles in general, there seems to be a lot of scope to enhance the model performance by creating custom features. Some of these features are static like demographics, and some are events like promotions. Here are a few feature engineering ideas and notes:
 
 1. when employees dont get promoted despite good performance
-2. large number of years since previous promotion
+2. long time since previous promotion
 3. salary compared to peers (definition of peers can be wrt city, designation, gender , education etc)
 4. change in city / transfer
 5. brand new employee
