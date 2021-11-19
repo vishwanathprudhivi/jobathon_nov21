@@ -25,7 +25,7 @@ elif mode == 'local':
 
 PRIMARY_KEYS = ['emp_id','mmm-yy','lastworkingdate','dateofjoining']
 
-CATEGORICAL_FEATURES = ['designation','gender','city','education_level']
+CATEGORICAL_FEATURES = ['designation','gender','city','education_level','joining_designation']
 NUMERICAL_FEATURES = ['salary','age','total_business_value','quarterly_rating','tenure']
 DATETIME_FEATURES = ['lastworkingdate','dateofjoining','mmm-yy']
 

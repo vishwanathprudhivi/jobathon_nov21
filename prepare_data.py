@@ -42,7 +42,28 @@ def prepare_data(data_type = 'train',
         for i in range(1,9,1):
             df[f'rating_minus_{i}'] = df.groupby(['emp_id'])['quarterly_rating'].shift(i)
             df[f'business_minus_{i}'] = df.groupby(['emp_id'])['total_business_value'].shift(i)
+        
+        #get designation min and max rating, bv
+        df['designation_max_rating'] = df.groupby(['designation'])['quarterly_rating'].max()
+        df['designation_min_rating'] = df.groupby('designation')['quarterly_rating'].min()
+        df['designation_max_bv'] = df.groupby('designation')['quarterly_rating'].max()
+        df['designation_min_bv'] = df.groupby('designation')['quarterly_rating'].min()
 
+        '''
+        group = df.groupby(['designation','gender'],as_index = False)['quarterly_rating'].max()
+        group = group.rename(columns = {'quarterly_rating':'designation_max_rating'})
+        df = df.merge(group,on = ['designation','gender'])
+        print(df.columns)
+        group = df.groupby(['designation','gender'],as_index = False)['quarterly_rating'].min()
+        group = group.rename(columns = {'quarterly_rating':'designation_min_rating'})
+        df = df.merge(group,on = ['designation','gender'])
+        group = df.groupby(['designation','gender'],as_index = False)['total_business_value'].max()
+        group = group.rename(columns = {'total_business_value':'designation_max_bv'})
+        df = df.merge(group,on = ['designation','gender'])
+        group = df.groupby(['designation','gender'],as_index = False)['total_business_value'].min().rename({'total_business_value':'designation_min_bv'})
+        group = group.rename(columns = {'total_business_value':'designation_min_bv'})
+        df = df.merge(group,on = ['designation','gender'])
+        '''
         #create tenure column
         df['tenure'] = (df['mmm-yy'] - df['dateofjoining']).dt.days
 
@@ -65,7 +86,7 @@ def prepare_data(data_type = 'train',
         print('not needed as there is no separate test dataset')
     
     #combine all individual datasets together
-    out_df = pd.concat([numerical_features_df,categorical_features_df,df[[target_col]+PRIMARY_KEYS+[f'rating_minus_{i}' for i in range(1,9,1)] + [f'business_minus_{i}' for i in range(1,9,1)]]],axis = 1).fillna(0)
+    out_df = pd.concat([numerical_features_df,categorical_features_df,df[[target_col]+['designation_max_rating','designation_min_rating','designation_max_bv','designation_min_bv']+PRIMARY_KEYS+[f'rating_minus_{i}' for i in range(1,9,1)] + [f'business_minus_{i}' for i in range(1,9,1)]]],axis = 1).fillna(0)
 
     print('out_df data shape {}'.format(out_df.shape))
 
