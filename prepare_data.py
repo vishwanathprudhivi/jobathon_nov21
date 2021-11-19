@@ -1,0 +1,99 @@
+#import standard libraries
+import pandas as pd
+import numpy as np
+from pandas.core.arrays import categorical
+from sklearn.preprocessing import OneHotEncoder,StandardScaler
+import joblib
+import argparse
+import logging
+
+#import user defined libraries
+from constants import *
+
+def prepare_data(data_type = 'train',
+                 input_data_path = '',
+                 output_data_path = '',
+                 artifacts_path = '',
+                 categorical_features = [],
+                 numerical_features = [],
+                 target_col = '',
+                 logger = None
+                 ):
+    
+    #load data
+    df = pd.read_csv(input_data_path)
+    print('data shape {}'.format(df.shape))
+    #standardize column names
+    df.rename(columns = {col:col.replace(' ','_').lower() for col in df.columns},inplace = True)
+    print('data columns ',df.columns)
+
+    if data_type == 'train':
+        #get dummies for categorical features
+        ohe_encoder = OneHotEncoder(handle_unknown='ignore',sparse = False, drop = 'first').fit(df[categorical_features])
+        categorical_features_df = pd.DataFrame(ohe_encoder.transform(df[categorical_features]),columns = ohe_encoder.get_feature_names_out(categorical_features))
+        print('categorical_features_df data shape {}'.format(categorical_features_df.shape))
+
+        #get scaled values of numeric features
+        standard_scaler = StandardScaler().fit(df[numerical_features])
+        numerical_features_df = pd.DataFrame(standard_scaler.transform(df[numerical_features]),columns = numerical_features)
+        print('numerical_features_df data shape {}'.format(numerical_features_df.shape))
+
+        #parse date time columns
+        for col in DATETIME_FEATURES:
+            df[col] = pd.to_datetime(df[col])
+        
+        #create the target variable
+        #df['lastworkingdate'].bfill(axis ='rows',inplace = True)
+        df['lastworkingdate'] = df.groupby(['emp_id'])['lastworkingdate'].bfill()
+        df[target_col] = 0
+        df[target_col][((df['lastworkingdate'] - df['mmm-yy']).dt.days<=6*30) & ((df['lastworkingdate'] - df['mmm-yy']).dt.days>0)] = 1
+
+        #save our data transformers
+        joblib.dump(ohe_encoder,artifacts_path+'ohe_obj.pkl')
+        joblib.dump(standard_scaler,artifacts_path+'standard_scaler.pkl')
+    
+    elif data_type == 'test':
+        #no logic required here as we need to create the predictions from the train dataset
+        print('not needed as there is no separate test dataset')
+    
+    #combine all individual datasets together
+    out_df = pd.concat([numerical_features_df,categorical_features_df,df[[target_col]+PRIMARY_KEYS]],axis = 1)
+
+    print('out_df data shape {}'.format(out_df.shape))
+
+    #write out the file to disk
+    out_df.to_csv(output_data_path,index = False)
+    print('writing to disk')
+    
+    return None
+
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser(description='Data Prep code')
+    parser.add_argument('--data_type', type=str)
+    parser.add_argument('--input_data_path', type=str)
+    parser.add_argument('--output_data_path', type=str)
+    parser.add_argument('--artifact_path', type=str)
+    args = parser.parse_args()
+
+    '''
+    python3 prepare_data.py --data_type=train \
+                            --input_data_path=/home/code/data/train_MpHjUjU.csv \
+                            --output_data_path=/home/code/data/processed_train.csv\
+                            --artifact_path=/home/code/artifacts/
+    
+    python3 prepare_data.py --data_type=test \
+                            --input_data_path=/home/code/data/test_hXY9mYm.csv \    
+                            --output_data_path=/home/code/data/processed_test.csv\
+                            --artifact_path=/home/code/artifacts/
+    '''
+
+    logger = logging.getLogger(__name__)
+    prepare_data(data_type = args.data_type,
+                 input_data_path = args.input_data_path,
+                 output_data_path = args.output_data_path,
+                 artifacts_path = args.artifact_path,
+                 categorical_features = CATEGORICAL_FEATURES,
+                 numerical_features = NUMERICAL_FEATURES,
+                 target_col='target',
+                 logger = logger
+                 )
