@@ -11,7 +11,7 @@ raw data exploration observations:
 
 1. raw data has no missing values, except for the last working day column
 2. high correlation observed (as is expected) between age, salary, and designation
-3. high correlation observed (as is expected) between total business value, quarterly rating, and our target columne
+3. high correlation observed (as is expected) between total business value, quarterly rating, and our target column
 
 Given our own experiences with appraisal cycles in general, there seems to be a lot of scope to enhance the model performance by creating custom features. Here are a few feature engineering ideas and notes:
 
