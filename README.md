@@ -17,12 +17,13 @@ raw data exploration observations:
 
 Given our own experiences with appraisal cycles in general, there seems to be a lot of scope to enhance the model performance by creating custom features. Some of these features are static like demographics, and some are events like promotions. Here are a few feature engineering ideas and notes:
 
-1. when employees dont get promoted despite good performance
-2. long time since previous promotion
-3. salary compared to peers (definition of peers can be wrt city, designation, gender , education etc)
-4. change in city / transfer
-5. brand new employee
-6. tenure
-7. demotions
+1. employee performance - historical sequence of ratings
+2. promotions / salary hike flags
+3. when employees dont get promoted/salary hike despite good performance 
+4. long time since previous promotion
+5. salary compared to peers (definition of peers can be wrt city, designation, gender , education etc)
+6. change in city / transfer
+7. tenure
 8. measure the appraisal cycle length
 9. compare employee performance against best and worst employee in their own band
+10. percentile of employee performance in their own band / designation
