@@ -25,10 +25,10 @@ np.random.seed(2021)
 
 train_df  = pd.read_csv(PROCESSED_TRAIN_PATH)
 
-feature_cols = ['salary','age','total_business_value','quarterly_rating','designation_2','designation_3','designation_4',
-                'designation_5','gender_Male','education_level_College','education_level_Master'] \
-                + [col for col in train_df.columns if 'joining_designation' in col]
-                #+ [f'rating_minus_{i}' for i in range(1,5,1)] \        
+feature_cols = ['salary','age','tenure','total_business_value','quarterly_rating','designation_2','designation_3','designation_4',
+                'designation_5','gender_Male','education_level_College','education_level_Master','designation_max_rating','designation_min_rating'] \
+                + [f'rating_minus_{i}' for i in [6]] 
+                #+ [col for col in train_df.columns if 'joining_designation' in col]      
                 #+ [col for col in train_df.columns if 'city' in col] \
                 #+ [f'business_minus_{i}' for i in range(1,5,1)]
 
@@ -41,8 +41,7 @@ x_train,x_val,y_train,y_val = train_test_split(x,y,test_size = 0.2)
 def get_model_dl(input_shape,output_shape,x_train,y_train):
     l0 = layers.Input(shape = input_shape)
     l1 = layers.Dense(256,activation = 'relu')(l0)
-    l5 = layers.Dense(256,activation = 'relu')(l1)
-    l2 = layers.Dense(128,activation = 'relu')(l5)
+    l2 = layers.Dense(128,activation = 'relu')(l1)
     l3 = layers.Dense(64,activation = 'relu')(l2)
     l4 = layers.Dense(32,activation = 'relu')(l3)
     output = layers.Dense(output_shape,activation = 'sigmoid')(l4)
@@ -50,7 +49,7 @@ def get_model_dl(input_shape,output_shape,x_train,y_train):
     LEARNING_RATE = 0.001
     optimizer = Adam(lr = LEARNING_RATE)
     model.compile(loss = 'binary_crossentropy',optimizer = optimizer,metrics = ['accuracy','AUC'])
-    model.fit(x_train,y_train,batch_size = 50, nb_epoch= 15,
+    model.fit(x_train,y_train,batch_size = 50, nb_epoch= 10,
                         verbose=1, validation_data=(x_val, y_val),
                         shuffle = True)
     return model
@@ -59,8 +58,9 @@ def get_model_dl(input_shape,output_shape,x_train,y_train):
 #model training and evalution
 dl_model = get_model_dl(len(feature_cols),1,x_train,y_train)
 train_preds = dl_model.predict(x_train).round()
+train_preds = (train_preds>0.4).astype(int)
 eval_preds = dl_model.predict(x_val).round()
-
+eval_preds = (eval_preds>0.4).astype(int)
 print('train accuracy score = ',accuracy_score(y_train,train_preds),'test accuracy score = ',accuracy_score(y_val,eval_preds))
 print('train f1 score = ',f1_score(y_train,train_preds),'test f1 score = ',f1_score(y_val,eval_preds))
 
